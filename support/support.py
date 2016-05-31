@@ -18,6 +18,7 @@ import locale
 try:
     # noinspection PyUnresolvedReferences
     from dialog import Dialog
+    from dialog import DialogError
 except ImportError:
     print("Vous n'avez pas décompréssé l'archive correctement : pythonDialog n'a pas été trouvé :(")
     sys.exit(100)
@@ -89,28 +90,39 @@ def main():
                             sys.exit(0)
                         else:
                             propositionsMessages(d, programme)
+            else:
+                d.msgbox("Si tu ne trouves pas de message particulier, cherche si l'application n'a pas d'autres fichiers de logs. Si ce n'est pas le cas, passe nous voir au support sur IRC")
         else:
             d.msgbox("Pas de soucis, regardons. Tu dois chercher des lignes contenant des erreurs")
             if d.yesno("Connais-tu le chemin vers ces logs ? Je ne connais que ceux par défault, et si tes serveurs sont installés a d'autres endroits, je ne les trouverai pas.", yes_label="Oui, je connais!", no_label="Malheureusement non !") != d.OK:
                 d.msgbox("Voici les logs, si je les trouves...")
-                if programme == "serveur":
-                    d.textbox("/var/log/syslog")
-                elif programme == "web":
-                    d.textbox("/var/log/apache2/error.log")
-                elif programme == "minecraft":
-                    code, serv = d.inputbox("Quel est le nom du serveur aprés /home/minecraft ? (tapez juste / si il n'y en a pas)", init="/")
-                    d.textbox("/home/minecraft/" + serv + "/logs/latest.log")
-                elif programme == "source":
-                    d.msgbox("Les logs pour les serveurs source sont dans la console seulement")
-                elif programme == "vpn":
-                    d.textbox("/var/log/syslog") # oui, ca log dans syslog openvpn :o
-                elif programme == "sshd":
-                    d.textbox("/var/log/auth.log")
-                    d.textbox("/var/log/messages")
-                elif programme == "bdd":
-                    d.textbox("/var/log/mysql.log")
-                else:
-                    d.msgbox("Le mieux serait de chercher ce chemin sur google...")
+                try:
+                    if programme == "serveur":
+                        d.textbox("/var/log/syslog")
+                    elif programme == "web":
+                        d.textbox("/var/log/apache2/error.log")
+                    elif programme == "minecraft":
+                        code, serv = d.inputbox("Quel est le nom du serveur aprés /home/minecraft ? (tapez juste / si il n'y en a pas)", init="/")
+                        d.textbox("/home/minecraft/" + serv + "/logs/latest.log")
+                    elif programme == "source":
+                        d.msgbox("Les logs pour les serveurs source sont dans la console seulement")
+                    elif programme == "vpn":
+                        d.textbox("/var/log/syslog") # oui, ca log dans syslog openvpn :o
+                    elif programme == "sshd":
+                        d.textbox("/var/log/auth.log")
+                        d.textbox("/var/log/messages")
+                    elif programme == "bdd":
+                        d.textbox("/var/log/mysql.log")
+                    else:
+                        d.msgbox("Le mieux serait de chercher ce chemin sur google...")
+                        code, logs = d.inputbox("Quel est ce chemin ?", init="/var/log/[...]")
+                        if code == d.OK:
+                            d.textbox(logs)
+                        else:
+                            d.msgbox("Au revoir è_é!")
+                            sys.exit(2)
+                except DialogError:
+                    d.msgbox("Je n'ai pas trouvé le fichier :'(. Le mieux serait de chercher ce chemin sur google...")
                     code, logs = d.inputbox("Quel est ce chemin ?", init="/var/log/[...]")
                     if code == d.OK:
                         d.textbox(logs)
